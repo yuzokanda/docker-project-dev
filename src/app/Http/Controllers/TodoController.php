@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreTodoRequest;
 use App\Http\Requests\UpdateTodoRequest;
 use App\Models\Todo;
+use Inertia\Inertia;
 
 class TodoController extends Controller
 {
@@ -15,7 +17,9 @@ class TodoController extends Controller
      */
     public function index()
     {
-        //
+        return Inertia::render('Todos/Index', [
+            'todos' => Todo::select('id', 'task', 'description', 'due_date', 'due_time', 'completed')->get()
+        ]);
     }
 
     /**
@@ -25,7 +29,7 @@ class TodoController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('Todos/Create');
     }
 
     /**
@@ -36,7 +40,19 @@ class TodoController extends Controller
      */
     public function store(StoreTodoRequest $request)
     {
-        //
+        Todo::create([
+            'task' => $request->task,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'due_time' => $request->due_time,
+            'completed' => $request->completed
+        ]);
+
+        return to_route('todos.index')
+        ->with([
+            'message' => '追加しました。',
+            'status' => 'success'
+        ]);
     }
 
     /**
@@ -47,7 +63,10 @@ class TodoController extends Controller
      */
     public function show(Todo $todo)
     {
-        //
+        // dd($todo);
+        return Inertia::render('Todos/Show', [
+            'todo' => $todo
+        ]);
     }
 
     /**
@@ -58,7 +77,9 @@ class TodoController extends Controller
      */
     public function edit(Todo $todo)
     {
-        //
+        return Inertia::render('Todos/Edit', [
+            'todo' => $todo
+        ]);
     }
 
     /**
@@ -70,7 +91,18 @@ class TodoController extends Controller
      */
     public function update(UpdateTodoRequest $request, Todo $todo)
     {
-        //
+        $todo->task = $request->task;
+        $todo->description = $request->description;
+        $todo->due_date = $request->due_date;
+        $todo->due_time = $request->due_time;
+        $todo->completed = $request->completed;
+        $todo->save();
+
+        return to_route('todos.index')
+        ->with([
+            'message' => '更新しました。',
+            'status' => 'success'
+        ]);
     }
 
     /**
@@ -81,6 +113,21 @@ class TodoController extends Controller
      */
     public function destroy(Todo $todo)
     {
-        //
+        $todo->delete();
+
+        return to_route('todos.index')
+        ->with([
+            'message' => '削除しました。',
+            'status' => 'danger'
+        ]);
     }
+
+    public function toggleCompletion(Request $request, Todo $todo)
+    {
+    $todo->completed = $request->completed;
+    $todo->save();
+
+    return redirect()->back();
+    }
+
 }

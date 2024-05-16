@@ -17,6 +17,9 @@ return new class extends Migration
             $table->id();
             $table->string('task');
             $table->string('description')->nullable();
+            $table->date('due_date');
+            $table->time('due_time');
+            $table->boolean('completed');
             $table->timestamps();
         });
     }
