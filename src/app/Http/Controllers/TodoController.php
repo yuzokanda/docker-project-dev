@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreTodoRequest;
 use App\Http\Requests\UpdateTodoRequest;
 use App\Models\Todo;
@@ -120,4 +121,13 @@ class TodoController extends Controller
             'status' => 'danger'
         ]);
     }
+
+    public function toggleCompletion(Request $request, Todo $todo)
+    {
+    $todo->completed = $request->completed;
+    $todo->save();
+
+    return redirect()->back();
+    }
+
 }

@@ -10,6 +10,9 @@ use App\Http\Controllers\TodoController;
 Route::resource('todos', TodoController::class)
 ->middleware(['auth', 'verified']);
 
+Route::post('todos/{todo}/toggle-completion', [TodoController::class, 'toggleCompletion'])
+->middleware(['auth', 'verified']);
+
 
 Route::get('/inertia-test', function () {
     return Inertia::render('InertiaTest');
