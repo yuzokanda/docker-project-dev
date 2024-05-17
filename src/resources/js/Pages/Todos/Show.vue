@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/inertia-vue3';
 import { Inertia } from '@inertiajs/inertia';
-
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 defineProps({
     todo: Object,
@@ -88,10 +88,10 @@ const deleteTodo = id => {
                                     </div>
                                     </div>
                                     <div class="p-2 w-full">
-                                        <Link as="button" :href="route('todos.edit', { todo: todo.id })" class="flex mx-auto text-white bg-blue-500 border-0 py-2 px-8 focus:outline-none hover:bg-blue-600 rounded text-lg">編集</Link>
+                                        <Link as="button" :href="route('todos.edit', { todo: todo.id })" class="flex mx-auto text-white bg-blue-400 border-0 py-2 px-8 focus:outline-none hover:bg-blue-500 rounded text-lg">編集</Link>
                                     </div>
                                     <div class="p-2 mt-20 w-full">
-                                    <button @click="deleteTodo(todo.id)" class="flex mx-auto text-white bg-red-500 border-0 py-2 px-8 focus:outline-none hover:bg-red-600 rounded text-lg">削除</button>
+                                    <button @click="deleteTodo(todo.id)" class="flex mx-auto text-white bg-red-400 border-0 py-2 px-8 focus:outline-none hover:bg-red-500 rounded text-lg">削除</button>
                                     </div>
                                 </div>
                                 </div>

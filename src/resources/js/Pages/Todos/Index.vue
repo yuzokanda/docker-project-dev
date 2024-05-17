@@ -2,12 +2,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/inertia-vue3';
 import FlashMessage from '@/Components/FlashMessage.vue';
-import { computed } from 'vue';
-import { Inertia } from '@inertiajs/inertia';
+import { computed, ref, watch } from 'vue';
+import axios from 'axios';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 const props = defineProps({
     todos: Array
 });
+
+const todos = ref([...props.todos]);
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -26,7 +29,7 @@ const truncateDescription = (description) => {
 };
 
 const todosWithTruncatedDescription = computed(() => {
-    return props.todos.map(todo => ({
+    return todos.value.map(todo => ({
         ...todo,
         description: truncateDescription(todo.description)
     }));
@@ -41,20 +44,20 @@ const isDueWithin24Hours = (due_date, due_time) => {
 };
 
 // 未完了と完了の切り替えボタン設置
-const toggleCompletion = async (todo) => {
-    todo.completed = todo.completed === 0 ? 1 : 0;
-    try {
-        await Inertia.post(`/todos/${todo.id}/toggle-completion`, {
-            completed: todo.completed
-        }, {
-            preserveState: true,
-            onSuccess: () => {
-                console.log('更新が完了しました');
-            }
-        });
-    } catch (error) {
+const toggleCompletion = (todo) => {
+    const newCompleted = !todo.completed;
+    axios.put(`/api/todos/${todo.id}/toggle`, {
+        completed: newCompleted
+    })
+    .then(response => {
+            // 特定のtodoのcompletedプロパティを更新
+        const index = todos.value.findIndex(t => t.id === todo.id);
+        todos.value[index].completed = response.data.completed ? 1 : 0;
+            console.log('更新が完了しました');
+    })
+    .catch(error => {
         console.error('更新に失敗しました', error);
-    }
+    });
 };
 
 </script>
@@ -79,7 +82,7 @@ const toggleCompletion = async (todo) => {
                                 <FlashMessage />
                                 <div class="w-full mx-auto">
                                     <div class="flex justify-end my-3">
-                                        <Link as="button" :href="route('todos.create')" class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">タスク追加</Link>
+                                        <Link as="button" :href="route('todos.create')" class="flex ml-auto text-white bg-indigo-400 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-500 rounded">タスク追加</Link>
                                     </div>
                                     <div class="overflow-auto">
                                         <table class="table-auto w-full text-left whitespace-no-wrap">
@@ -87,7 +90,7 @@ const toggleCompletion = async (todo) => {
                                                 <tr>
                                                     <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100 rounded-tl rounded-bl">タスク</th>
                                                     <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100">説明</th>
-                                                    <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100">期日</th>
+                                                    <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100">期限</th>
                                                     <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100 text-center">ステイタス</th>
                                                     <th class="px-4 py-3 title-font tracking-widest font-medium text-gray-900 text-sm bg-gray-100 text-center rounded-tr rounded-br"></th>
                                                 </tr>
@@ -98,12 +101,10 @@ const toggleCompletion = async (todo) => {
                                                     <td class="px-4 py-3" :class="{ 'line-through opacity-50': todo.completed === 1, 'text-red-500': isDueWithin24Hours(todo.due_date, todo.due_time) }">{{ todo.description }}</td>
                                                     <td class="px-4 py-3" :class="{ 'line-through opacity-50': todo.completed === 1, 'text-red-500': isDueWithin24Hours(todo.due_date, todo.due_time) }">{{ formatDate(todo.due_date) }} &nbsp; {{ formatTime(todo.due_time) }}</td>
                                                     <td class="px-4 py-3 text-center">
-                                                        <Link as="button" @click="toggleCompletion(todo)" :class="{ 'bg-gray-500 text-white border-0 py-1 px-2 focus:outline-none hover:bg-gray-600 rounded': todo.completed === 0, 'opacity-50': todo.completed === 1 }" class="text-white bg-gray-500 border-0 py-1 px-2 focus:outline-none hover:bg-gray-600 rounded">
+                                                        <PrimaryButton @click="toggleCompletion(todo)" :class="{ 'bg-gray-400 text-white border-0 py-1 px-2 focus:outline-none hover:bg-gray-500 rounded': todo.completed === 0, 'bg-gray-300 text-white border-0 py-1 px-2 focus:outline-none hover:bg-gray-400 rounded opacity-50': todo.completed === 1 }">
                                                             <span v-if="todo.completed === 0">未完了</span>
                                                             <span v-if="todo.completed === 1">完了</span>
-                                                        </Link>
-                                                        <!-- <span v-if="todo.completed === 0" :class="{ 'text-red-500': isDueWithin24Hours(todo.due_date, todo.due_time) }">未完了</span>
-                                                        <span v-if="todo.completed === 1" class="opacity-50">完了</span> -->
+                                                        </PrimaryButton>
                                                     </td>
                                                     <td class="px-4 py-6">
                                                         <Link class="text-blue-400" :href="route('todos.show', { todo: todo.id })">詳細</Link>
